@@ -42,7 +42,7 @@ func (r *repository) AddSegment(slug string) error {
 			}
 
 		}
-		r.log.Error(err.Error(), slog.String("op", op))
+		r.log.Error("failed to add segmet", slog.String("op", op), sl.Err(err))
 		return errors.Wrap(err, "insert slug")
 	}
 

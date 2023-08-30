@@ -9,10 +9,12 @@ import (
 	"github.com/Dmitriy770/user-segmentation-service/internal/db/postgres"
 	"github.com/Dmitriy770/user-segmentation-service/internal/http-server/handlers/segment/add"
 	"github.com/Dmitriy770/user-segmentation-service/internal/http-server/handlers/segment/delete"
+	"github.com/Dmitriy770/user-segmentation-service/internal/http-server/handlers/user/update"
 	mwLogger "github.com/Dmitriy770/user-segmentation-service/internal/http-server/middleware/logger"
 	"github.com/Dmitriy770/user-segmentation-service/internal/lib/logger/handlers/slogpretty"
 	"github.com/Dmitriy770/user-segmentation-service/internal/lib/logger/sl"
 	"github.com/Dmitriy770/user-segmentation-service/internal/serevices/segments"
+	"github.com/Dmitriy770/user-segmentation-service/internal/serevices/users"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -24,6 +26,8 @@ const (
 )
 
 func main() {
+	os.Exit(0)
+
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
@@ -38,6 +42,8 @@ func main() {
 	}
 	segmentsRep := segments.NewRepository(log, storage)
 	segmentsService := segments.NewService(log, segmentsRep)
+	usersRep := users.NewRepository(log, storage)
+	usersService := users.NewService(log, usersRep)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -47,6 +53,7 @@ func main() {
 
 	router.Post("/segment", add.New(log, segmentsService))
 	router.Delete("/segment", delete.New(log, segmentsService))
+	router.Post("/user", update.New(log, usersService))
 
 	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 
