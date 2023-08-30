@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Dmitriy770/user-segmentation-service/internal/serevices/models"
-	"github.com/Dmitriy770/user-segmentation-service/internal/storage/entities"
+	"github.com/Dmitriy770/user-segmentation-service/internal/entities"
+	"github.com/Dmitriy770/user-segmentation-service/internal/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -37,9 +37,9 @@ func (r *repository) AddUser(user models.User) error {
 
 func (r *repository) GetUser(user_id int) (*models.User, error) {
 
-	rawUserWithSegments := make([]entities.UserSegment, 0)
+	rawUserWithSegment := make([]entities.UserSegment, 0)
 	err := r.db.Select(
-		&rawUserWithSegments,
+		&rawUserWithSegment,
 		`
 		SELECT user_id, slug_segment
 		FROM segments_users
@@ -53,7 +53,7 @@ func (r *repository) GetUser(user_id int) (*models.User, error) {
 
 	user := &models.User{ID: user_id}
 
-	for _, segmentUser := range rawUserWithSegments {
+	for _, segmentUser := range rawUserWithSegment {
 		user.Segments = append(user.Segments, segmentUser.SegmentSlug)
 	}
 

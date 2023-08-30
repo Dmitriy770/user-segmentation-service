@@ -1,4 +1,4 @@
-package create
+package delete
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/Dmitriy770/user-segmentation-service/internal/lib/logger/api/response"
 	"github.com/Dmitriy770/user-segmentation-service/internal/lib/logger/sl"
-	"github.com/Dmitriy770/user-segmentation-service/internal/storage"
+	"github.com/Dmitriy770/user-segmentation-service/internal/serevices/segments"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -21,13 +21,13 @@ type Response struct {
 	response.Response
 }
 
-type SegmentCreater interface {
-	CreateSegment(slug string) error
+type SegmentDeleter interface {
+	DeleteSegment(slug string) error
 }
 
-func New(log *slog.Logger, segmentCreater SegmentCreater) http.HandlerFunc {
+func New(log *slog.Logger, segmentCreater SegmentDeleter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.segment.save.New"
+		const op = "handlers.segment.delete"
 
 		log = log.With(
 			slog.String("op", op),
@@ -56,19 +56,19 @@ func New(log *slog.Logger, segmentCreater SegmentCreater) http.HandlerFunc {
 			return
 		}
 
-		err = segmentCreater.CreateSegment(req.Slug)
-		if errors.Is(err, storage.ErrSegmentExists) {
+		err = segmentCreater.DeleteSegment(req.Slug)
+		if errors.Is(err, segments.ErrSlugNotFound) {
 			log.Info("segment already exists", slog.String("slug", req.Slug))
 			render.JSON(w, r, response.Error("segment alreadt exists"))
 			return
 		}
 		if err != nil {
-			log.Error("failed to add segment", sl.Err(err))
-			render.JSON(w, r, response.Error("failed to add segment"))
+			log.Error("failed to delete segment", sl.Err(err))
+			render.JSON(w, r, response.Error("failed to delete segment"))
 			return
 		}
 
-		log.Info("segment added", slog.String("slug", req.Slug))
+		log.Info("segment deleted", slog.String("slug", req.Slug))
 
 		render.JSON(w, r, response.OK())
 	}

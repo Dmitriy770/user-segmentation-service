@@ -6,11 +6,13 @@ import (
 	"os"
 
 	"github.com/Dmitriy770/user-segmentation-service/internal/config"
-	"github.com/Dmitriy770/user-segmentation-service/internal/http-server/handlers/segment/create"
+	"github.com/Dmitriy770/user-segmentation-service/internal/db/postgres"
+	"github.com/Dmitriy770/user-segmentation-service/internal/http-server/handlers/segment/add"
+	"github.com/Dmitriy770/user-segmentation-service/internal/http-server/handlers/segment/delete"
 	mwLogger "github.com/Dmitriy770/user-segmentation-service/internal/http-server/middleware/logger"
 	"github.com/Dmitriy770/user-segmentation-service/internal/lib/logger/handlers/slogpretty"
 	"github.com/Dmitriy770/user-segmentation-service/internal/lib/logger/sl"
-	"github.com/Dmitriy770/user-segmentation-service/internal/storage/sqlite"
+	"github.com/Dmitriy770/user-segmentation-service/internal/serevices/segments"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -29,11 +31,13 @@ func main() {
 	log.Info("starting user-segmentation-service", slog.String("env", cfg.Env))
 	log.Debug("debug messages are enabled")
 
-	storage, err := sqlite.New(cfg.StoragePath)
+	storage, err := postgres.New(cfg.PostgreSQL)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
+	segmentsRep := segments.NewRepository(log, storage)
+	segmentsService := segments.NewService(log, segmentsRep)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -41,12 +45,13 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/segment", create.New(log, storage))
+	router.Post("/segment", add.New(log, segmentsService))
+	router.Delete("/segment", delete.New(log, segmentsService))
 
-	log.Info("starting server", slog.String("address", cfg.Address))
+	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 
 	srv := &http.Server{
-		Addr:         cfg.Address,
+		Addr:         cfg.HTTPServer.Address,
 		Handler:      router,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
