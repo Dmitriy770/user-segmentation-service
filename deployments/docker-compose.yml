@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   user-segmentation-service:
+    restart: unless-stopped
     build:
       dockerfile: build/Dockerfile
     environment:
