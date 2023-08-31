@@ -1,7 +1,17 @@
 version: '3.9'
 
 services:
-  postgrs:
+  user-segmentation-service:
+    build:
+      dockerfile: build/Dockerfile
+    environment:
+      - CONFIG_PATH=config/config.yaml
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+
+  postgres:
     image: postgres:alpine
     restart: unless-stopped
     environment:
