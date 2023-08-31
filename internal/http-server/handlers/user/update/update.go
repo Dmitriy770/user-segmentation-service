@@ -14,7 +14,7 @@ import (
 )
 
 type Request struct {
-	UserId         int      `json:"user_id" validate:"required"`
+	UserId         *int     `json:"user_id" validate:"required"`
 	AddSegments    []string `json:"add_segments"`
 	DeleteSegments []string `json:"delete_segments"`
 }
@@ -29,7 +29,7 @@ type SegmentUpdater interface {
 
 func New(log *slog.Logger, segmentUpdater SegmentUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.segment.update"
+		const op = "handlers.user.update"
 
 		log = log.With(
 			slog.String("op", op),
@@ -40,7 +40,7 @@ func New(log *slog.Logger, segmentUpdater SegmentUpdater) http.HandlerFunc {
 
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			log.Error("failed to decode")
+			log.Info("failed to decode")
 			render.JSON(w, r, response.Error("failed to decode request"))
 			return
 		}
@@ -49,16 +49,12 @@ func New(log *slog.Logger, segmentUpdater SegmentUpdater) http.HandlerFunc {
 
 		if err := validator.New().Struct(req); err != nil {
 			validatorErr := err.(validator.ValidationErrors)
-
-			log.Error("invalid request", sl.Err(err))
-
-			render.JSON(w, r, response.Error("invalid request"))
+			log.Info("invalid request", sl.Err(err))
 			render.JSON(w, r, response.ValidatiobError(validatorErr))
-
 			return
 		}
 
-		err = segmentUpdater.UpdateUser(req.UserId, req.AddSegments, req.DeleteSegments)
+		err = segmentUpdater.UpdateUser(*req.UserId, req.AddSegments, req.DeleteSegments)
 		if errors.Is(err, users.ErrUserHaveSegment) {
 			log.Info("failed to update user`s segments", sl.Err(err))
 			render.JSON(w, r, response.Error("user have one of this segment"))
@@ -80,19 +76,7 @@ func New(log *slog.Logger, segmentUpdater SegmentUpdater) http.HandlerFunc {
 			return
 		}
 
-		// err = segmentCreater.DeleteSegment(req.Slug)
-		// if errors.Is(err, segments.ErrSlugNotFound) {
-		// 	log.Info("segment already exists", slog.String("slug", req.Slug))
-		// 	render.JSON(w, r, response.Error("segment alreadt exists"))
-		// 	return
-		// }
-		// if err != nil {
-		// 	log.Error("failed to delete segment", sl.Err(err))
-		// 	render.JSON(w, r, response.Error("failed to delete segment"))
-		// 	return
-		// }
-
-		// log.Info("segment deleted", slog.String("slug", req.Slug))
+		log.Info("user updated", slog.Int("user id", *req.UserId))
 
 		render.JSON(w, r, response.OK())
 	}

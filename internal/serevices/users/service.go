@@ -42,9 +42,10 @@ func (s *service) GetUser(id int) (*models.User, error) {
 func (s *service) UpdateUser(userId int, slugsForAdd []string, slugsForDelete []string) error {
 	const op = "users.service.UpdateUser"
 
-	user, err := s.usersRep.GetUser(userId)
+	s.usersRep.AddUser(models.User{ID: userId})
 
 	if len(slugsForDelete) > 0 {
+		user, err := s.usersRep.GetUser(userId)
 		if err != nil {
 			s.log.Error("failed to update user", slog.String("op", op), sl.Err(err))
 			return errors.Wrap(err, "update users")

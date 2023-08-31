@@ -51,17 +51,20 @@ func (r *repository) GetUser(user_id int) (*models.User, error) {
 		&rawUserWithSegment,
 		`
 		SELECT user_id, segment_slug
-		FROM users segments_users
+		FROM segments_users
 		WHERE user_id=$1;
 		`,
 		user_id,
 	)
 	if err != nil {
-		r.log.Error("failed to add get user", slog.String("op", op), sl.Err(err))
+		r.log.Error("failed to get user", slog.String("op", op), sl.Err(err))
 		return nil, errors.Wrap(err, "get user")
 	}
 
-	user := &models.User{ID: user_id}
+	user := &models.User{
+		ID:       user_id,
+		Segments: make([]string, 0),
+	}
 
 	for _, segmentUser := range rawUserWithSegment {
 		user.Segments = append(user.Segments, segmentUser.SegmentSlug)
