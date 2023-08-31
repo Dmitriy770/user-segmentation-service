@@ -6,7 +6,7 @@ docker compose --project-directory . -f deployments/docker-compose.yml build
 ```
 
 ## Запуск проекта
-
+Сервис запускается на порте **8082**. Изменить порт можно в [docker-compose.yml](./deployments/docker-compose.yml)
 ```bash
 docker compose --project-directory . -f deployments/docker-compose.yml up
 ```
