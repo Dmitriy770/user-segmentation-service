@@ -57,21 +57,25 @@ func New(log *slog.Logger, segmentUpdater SegmentUpdater) http.HandlerFunc {
 		err = segmentUpdater.UpdateUser(*req.UserId, req.AddSegments, req.DeleteSegments)
 		if errors.Is(err, users.ErrUserHaveSegment) {
 			log.Info("failed to update user`s segments", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("user have one of this segment"))
 			return
 		}
 		if errors.Is(err, users.ErrUserDoesntHaveSegment) {
 			log.Info("failed to update user`s segments", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("user doesn`t have one of this segment"))
 			return
 		}
 		if errors.Is(err, users.ErrSegmentDoesNotExist) {
 			log.Info("failed to update user`s segments", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("user segment doesn`t exist"))
 			return
 		}
 		if err != nil {
 			log.Info("failed to update user`s segments", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("some error"))
 			return
 		}

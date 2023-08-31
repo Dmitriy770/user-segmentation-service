@@ -36,6 +36,7 @@ func New(log *slog.Logger, userGeter UserGeter) http.HandlerFunc {
 		userId, err := strconv.Atoi(userIdStr)
 		if err != nil {
 			log.Info("failed to get user", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("not valid user id"))
 			return
 		}
@@ -43,6 +44,7 @@ func New(log *slog.Logger, userGeter UserGeter) http.HandlerFunc {
 		user, err := userGeter.GetUser(int(userId))
 		if err != nil {
 			log.Info("failed to get user", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error(err.Error()))
 			return
 		}

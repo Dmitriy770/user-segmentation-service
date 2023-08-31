@@ -46,7 +46,7 @@ func (s *service) DeleteSegment(slug string) error {
 		return err
 	}
 	if dbSlug == nil {
-		s.log.Error("failed to delete segment", slog.String("op", op), sl.Err(err))
+		s.log.Error("failed to delete segment", slog.String("op", op))
 		return ErrSlugNotFound
 	}
 

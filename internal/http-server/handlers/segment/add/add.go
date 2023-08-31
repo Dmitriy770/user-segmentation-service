@@ -39,6 +39,7 @@ func New(log *slog.Logger, segmentCreater SegmentCreater) http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			log.Error("failed to decode")
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("failed to decode request"))
 			return
 		}
@@ -50,20 +51,21 @@ func New(log *slog.Logger, segmentCreater SegmentCreater) http.HandlerFunc {
 
 			log.Error("invalid request", sl.Err(err))
 
-			render.JSON(w, r, response.Error("invalid request"))
+			render.Status(r, 400)
 			render.JSON(w, r, response.ValidatiobError(validatorErr))
-
 			return
 		}
 
 		err = segmentCreater.AddSegment(req.Slug)
 		if errors.Is(err, segments.ErrSlugBusy) {
 			log.Info("segment already exists", slog.String("slug", req.Slug))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("segment already exists"))
 			return
 		}
 		if err != nil {
 			log.Error("failed to add segment", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("failed to add segment"))
 			return
 		}

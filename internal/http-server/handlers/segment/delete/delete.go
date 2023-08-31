@@ -39,6 +39,7 @@ func New(log *slog.Logger, segmentCreater SegmentDeleter) http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			log.Error("failed to decode")
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("failed to decode request"))
 			return
 		}
@@ -47,10 +48,8 @@ func New(log *slog.Logger, segmentCreater SegmentDeleter) http.HandlerFunc {
 
 		if err := validator.New().Struct(req); err != nil {
 			validatorErr := err.(validator.ValidationErrors)
-
 			log.Error("invalid request", sl.Err(err))
-
-			render.JSON(w, r, response.Error("invalid request"))
+			render.Status(r, 400)
 			render.JSON(w, r, response.ValidatiobError(validatorErr))
 
 			return
@@ -58,12 +57,14 @@ func New(log *slog.Logger, segmentCreater SegmentDeleter) http.HandlerFunc {
 
 		err = segmentCreater.DeleteSegment(req.Slug)
 		if errors.Is(err, segments.ErrSlugNotFound) {
-			log.Info("segment already exists", slog.String("slug", req.Slug))
-			render.JSON(w, r, response.Error("segment alreadt exists"))
+			log.Info("segment already delete", slog.String("slug", req.Slug))
+			render.Status(r, 400)
+			render.JSON(w, r, response.Error("segment already delete"))
 			return
 		}
 		if err != nil {
 			log.Error("failed to delete segment", sl.Err(err))
+			render.Status(r, 400)
 			render.JSON(w, r, response.Error("failed to delete segment"))
 			return
 		}

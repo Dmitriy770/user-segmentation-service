@@ -15,9 +15,9 @@ services:
     image: postgres:alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: "segments-db"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "123456"
+      POSTGRES_DB: segments-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
     ports:
       - "15432:5432"
     volumes:

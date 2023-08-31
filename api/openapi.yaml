@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: User segmentation api
+  version: '1.0'
+  description: сервис, хранящий пользователя и сегменты, в которых он состоит
+servers:
+  - url: http://localhost:8082
+    description: local development server
+paths:
+  /segment:
+    post:
+      tags:
+        - Segment
+      description: Метод создания сегмента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slug:
+                  type: string
+                  format: string
+                  minLength: 1
+                  maxLength: 50
+                  example: AVITO_VOICE_MESSAGES
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                   status:
+                    type: string
+                    example: OK
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Error
+                  error:
+                    type: string
+                    example: error description
+    delete:
+      tags:
+       - Segment
+      description: Метод удаления сегмента
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slug:
+                  type: string
+                  format: string
+                  minLength: 1
+                  maxLength: 50
+                  example: AVITO_VOICE_MESSAGES
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                   status:
+                    type: string
+                    example: OK
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Error
+                  error:
+                    type: string
+                    example: error description
+  /user:
+    post:
+      tags:
+        - User
+      description: Метод добавления пользователя в сегмент
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: integer
+                  format: int32
+                  example: 1000
+                  minimum: 0
+                add_segments:
+                  type: array
+                  items:
+                    type: string
+                    format: string
+                    example: AVITO_VOICE_MESSAGES
+                    minLength: 1
+                    maxLength: 50
+                delete_segments:
+                  type: array
+                  items:
+                    type: string
+                    format: string
+                    minLength: 1
+                    maxLength: 50
+                    example: AVITO_VOICE_MESSAGES
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Error
+                  error:
+                    type: string
+                    example: error description
+                      
+                  
+              
+  /user/{userId}:
+    get:
+      tags:
+       - User
+      description: Метод получения активных сегментов пользователя
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            example: 10000
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    format: int32
+                    example: 1000
+                    minimum: 0
+                  segments:
+                    type: array
+                    items:
+                      type: string
+                      format: string
+                      minLength: 1
+                      maxLength: 50
+                      example: AVITO_VOICE_MESSAGES
+                  status:
+                    type: string
+                    example: OK
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Error
+                  error:
+                    type: string
+                    example: error description
